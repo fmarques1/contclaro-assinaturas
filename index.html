@@ -19,6 +19,7 @@
 }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -93,6 +94,8 @@ input::placeholder{color:#2e4a4a}
 .btn-regen:hover{border-color:var(--accent);color:var(--accent)}
 .clear-btn{background:transparent;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:4px 8px;transition:color .2s}
 .clear-btn:hover{color:#e05555}
+.btn-export{padding:7px 16px;background:transparent;border:1px solid var(--accent);color:var(--accent);border-radius:7px;font-family:'Inter',sans-serif;font-size:12px;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-export:hover{background:var(--accent);color:#fff}
 </style>
 </head>
 <body>
@@ -112,8 +115,8 @@ input::placeholder{color:#2e4a4a}
     <div class="card">
       <div class="section-label">Unidade</div>
       <div class="tabs">
-        <button class="tab active-prime" id="tab-prime" onclick="setUnidade('prime',this)">Prime</button>
-        <button class="tab" id="tab-sbc" onclick="setUnidade('sbc',this)">SBC</button>
+        <button class="tab active-sbc" id="tab-sbc" onclick="setUnidade('sbc',this)">SBC</button>
+        <button class="tab" id="tab-prime" onclick="setUnidade('prime',this)">Prime</button>
         <button class="tab" id="tab-select" onclick="setUnidade('select',this)">Select</button>
       </div>
       <div class="section-label">Dados</div>
@@ -151,7 +154,10 @@ input::placeholder{color:#2e4a4a}
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
         <div class="section-label" style="margin-bottom:0">Assinaturas geradas</div>
-        <button class="clear-btn" onclick="limparHistorico()">Limpar tudo</button>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="btn-export" onclick="exportarExcel()">Exportar Excel</button>
+          <button class="clear-btn" onclick="limparHistorico()">Limpar tudo</button>
+        </div>
       </div>
       <div id="hist-container"><div class="history-empty">Nenhuma assinatura gerada ainda.</div></div>
     </div>
@@ -180,7 +186,7 @@ const TEMAS={
   select:{bg:"linear-gradient(135deg,#ffffff 0%,#dce8ff 100%)",nome:"#0A1212",depto:"#3669DE",texto:"#0A1212",icone:"#3669DE"}
 };
 
-let unidade="prime",tel2=false;
+let unidade="sbc",tel2=false;
 let historico=JSON.parse(localStorage.getItem('sig_historico')||'[]');
 
 function showPage(id,btn){
@@ -336,6 +342,20 @@ function limparHistorico(){
   historico=[];
   localStorage.setItem("sig_historico","[]");
   renderHistorico();
+}
+
+function exportarExcel(){
+  if(!historico.length){showToast("Nenhuma assinatura no histórico");return;}
+  const dados=[["Nome","Departamento","Unidade","Data"]];
+  historico.forEach(h=>{
+    dados.push([h.nome, h.depto, h.unidade.toUpperCase(), h.data]);
+  });
+  const ws=XLSX.utils.aoa_to_sheet(dados);
+  ws['!cols']=[{wch:30},{wch:25},{wch:10},{wch:20}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,"Assinaturas",ws);
+  XLSX.writeFile(wb,"historico_assinaturas.xlsx");
+  showToast("Excel exportado!");
 }
 
 function showToast(msg){
