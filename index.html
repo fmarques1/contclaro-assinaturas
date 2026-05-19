@@ -272,9 +272,18 @@ async function baixarPNG(){
       useCORS:true,
       allowTaint:true,
       backgroundColor:null,
-      logging:false
+      logging:false,
+      width:el.offsetWidth,
+      height:el.offsetHeight
     });
-    canvas.toBlob(blob=>{
+    // Crop border artifact
+    const crop=1;
+    const cropped=document.createElement('canvas');
+    cropped.width=canvas.width-(crop*2*4);
+    cropped.height=canvas.height-(crop*2*4);
+    const ctx=cropped.getContext('2d');
+    ctx.drawImage(canvas,-(crop*4),-(crop*4));
+    cropped.toBlob(blob=>{
       const a=document.createElement("a");
       a.href=URL.createObjectURL(blob);
       a.download=nome.replace(/\s+/g,"_")+"_assinatura.png";
