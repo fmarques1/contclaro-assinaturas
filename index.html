@@ -293,28 +293,21 @@ async function baixarPNG(){
 
   const T=TEMAS[unidade];
   const renderArea=document.getElementById("render-area");
-  const sigHTML = buildHTML();
-  // Wrap in a div with explicit background to help html2canvas capture gradients
-  const bgStyle = GRADIENTS[unidade] ? `url(${GRADIENTS[unidade]}) center/cover` : T.bg;
-  renderArea.innerHTML = `<div style="width:600px;height:244px;background:${bgStyle};display:block;position:relative">${sigHTML}</div>`;
+  renderArea.innerHTML = buildHTML();
   const el=renderArea.firstChild;
 
   try{
     // Wait for fonts to fully load before rendering
     await document.fonts.ready;
     await new Promise(r=>setTimeout(r,500));
-    // Force inline style on the table too
-    if(el.querySelector('table')) {
-      el.querySelector('table').style.background = T.bg;
-    }
     const canvas=await html2canvas(el,{
       scale:4,
       useCORS:true,
       allowTaint:true,
-      backgroundColor:T.bgRight ? null : T.bg,
+      backgroundColor: null,
       logging:false,
-      width:el.offsetWidth,
-      height:el.offsetHeight
+      width:600,
+      height:244
     });
     // Crop border artifact
     const crop=1;
